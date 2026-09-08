@@ -1,0 +1,16 @@
+{
+  "include": [
+    "backend"
+  ],
+  "extraPaths": [
+    "backend",
+    "backend/warehouse",
+    "backend/analytics",
+    "backend/ml_engine",
+    "backend/simulator",
+    "backend/ai_agent",
+    "backend/exports",
+    "backend/ingestion",
+    "backend/workspace"
+  ]
+}

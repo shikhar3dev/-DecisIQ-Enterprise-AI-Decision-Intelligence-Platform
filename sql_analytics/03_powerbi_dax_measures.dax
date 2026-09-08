@@ -1,0 +1,97 @@
+// ============================================================================
+// Enterprise AI Decision Intelligence Platform — Power BI DAX Measures
+// Copy and paste these measures directly into your Power BI Data Model
+// ============================================================================
+
+// 1. Core Revenue & Profit Metrics
+Total Gross Revenue = 
+SUM(fact_orders[gross_amount])
+
+Total Net Revenue = 
+SUM(fact_orders[net_amount])
+
+Total COGS = 
+SUM(fact_orders[cogs])
+
+Total Gross Profit = 
+[Total Net Revenue] - [Total COGS]
+
+Gross Margin % = 
+DIVIDE([Total Gross Profit], [Total Net Revenue], 0) * 100
+
+Total Orders = 
+DISTINCTCOUNT(fact_orders[order_id])
+
+Average Order Value (AOV) = 
+DIVIDE([Total Net Revenue], [Total Orders], 0)
+
+
+// 2. Period-over-Period & Time Intelligence
+Revenue Previous Month = 
+CALCULATE(
+    [Total Net Revenue],
+    DATEADD(fact_daily_business_pulse[date], -1, MONTH)
+)
+
+Revenue MoM Growth % = 
+VAR PrevRev = [Revenue Previous Month]
+RETURN
+DIVIDE([Total Net Revenue] - PrevRev, PrevRev, 0) * 100
+
+Revenue 7D Moving Average = 
+AVERAGEX(
+    DATESINPERIOD(fact_daily_business_pulse[date], LASTDATE(fact_daily_business_pulse[date]), -7, DAY),
+    [Total Net Revenue]
+)
+
+
+// 3. Customer 360 & Churn Intelligence
+Total Customers = 
+DISTINCTCOUNT(dim_customers[customer_id])
+
+Active Customers = 
+CALCULATE(
+    [Total Customers],
+    dim_customers[segment] IN {"Champions", "Loyal", "Potential"}
+)
+
+At-Risk Accounts Count = 
+CALCULATE(
+    [Total Customers],
+    dim_customers[segment] = "At-Risk"
+)
+
+Average Churn Probability % = 
+AVERAGE(dim_customers[churn_probability]) * 100
+
+Revenue at Risk (High Churn) = 
+CALCULATE(
+    [Total Net Revenue],
+    dim_customers[churn_risk_tier] = "High"
+)
+
+
+// 4. Marketing Attribution & Efficiency
+Total Marketing Spend = 
+SUM(dim_marketing_campaigns[total_spend])
+
+Attributed Marketing Revenue = 
+SUM(dim_marketing_campaigns[attributed_revenue])
+
+Blended ROAS = 
+DIVIDE([Attributed Marketing Revenue], [Total Marketing Spend], 0)
+
+Blended CAC = 
+DIVIDE([Total Marketing Spend], SUM(dim_marketing_campaigns[conversions]), 0)
+
+
+// 5. Dynamic What-If Price Elasticity Parameter Measures
+// (Assuming What-If Parameter 'Price Adjustment %'[Price Adjustment % Value])
+Simulated Demand Delta % = 
+SELECTEDVALUE('Price Adjustment %'[Price Adjustment % Value], 0) * -1.30
+
+Simulated Revenue = 
+[Total Net Revenue] * (1 + (SELECTEDVALUE('Price Adjustment %'[Price Adjustment % Value], 0) / 100)) * (1 + ([Simulated Demand Delta %] / 100))
+
+Simulated Gross Profit = 
+[Simulated Revenue] - ([Total COGS] * (1 + ([Simulated Demand Delta %] / 100)))
