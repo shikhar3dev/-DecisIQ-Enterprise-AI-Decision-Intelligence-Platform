@@ -2,6 +2,7 @@ import os
 import sys
 import datetime
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -51,10 +52,20 @@ from audit_logger import log_audit_event, get_audit_log
 from lineage_tracker import get_all_lineage, get_metric_lineage
 from analysis_history import get_analysis_runs, record_analysis_run
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from db import DB_PATH
+    if not DB_PATH.exists() or DB_PATH.stat().st_size == 0:
+        print("[*] Fresh clone detected: Auto-seeding enterprise data warehouse...")
+        seed_enterprise_warehouse()
+    init_workspace_tables()
+    yield
+
 app = FastAPI(
     title="Enterprise AI Decision Intelligence Platform API",
     description="Backend analytical engine powering executive decision making, ML forecasting, root-cause investigation, and scenario simulation.",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 # CORS middleware for local frontend and browser development
@@ -85,14 +96,6 @@ class MarketingSimRequest(BaseModel):
     shift_amount_lakhs: float = 10.0
     from_channel: str = "Meta Ads"
     to_channel: str = "Google Search"
-
-@app.on_event("startup")
-def startup_event():
-    from db import DB_PATH
-    if not DB_PATH.exists() or DB_PATH.stat().st_size == 0:
-        print("[*] Fresh clone detected: Auto-seeding enterprise data warehouse...")
-        seed_enterprise_warehouse()
-    init_workspace_tables()
 
 @app.get("/health")
 @app.get("/healthz")
