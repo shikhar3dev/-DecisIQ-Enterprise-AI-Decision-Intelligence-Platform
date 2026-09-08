@@ -13,7 +13,10 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
 # Ensure module path resolution
-sys.path.append(str(Path(__file__).resolve().parent / "warehouse"))
+backend_dir = Path(__file__).resolve().parent
+sys.path.insert(0, str(backend_dir))
+sys.path.insert(0, str(backend_dir.parent))
+sys.path.append(str(backend_dir / "warehouse"))
 sys.path.append(str(Path(__file__).resolve().parent / "analytics"))
 sys.path.append(str(Path(__file__).resolve().parent / "ml_engine"))
 sys.path.append(str(Path(__file__).resolve().parent / "simulator"))

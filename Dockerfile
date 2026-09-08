@@ -25,6 +25,9 @@ COPY sql_analytics/ ./sql_analytics/
 COPY powerbi_export_pack/ ./powerbi_export_pack/
 COPY db.py ./
 
+# Create data directory and pre-seed the analytical warehouse
+RUN mkdir -p /app/backend/data && python backend/warehouse/seed_data.py
+
 # Copy compiled frontend from Stage 1 into frontend/dist
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 

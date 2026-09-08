@@ -12,6 +12,7 @@ if _workspace_dir not in sys.path:
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "enterprise_warehouse.db"
 
 def get_db():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
