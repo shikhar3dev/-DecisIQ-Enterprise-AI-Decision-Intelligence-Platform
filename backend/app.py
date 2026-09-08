@@ -81,6 +81,14 @@ class MarketingSimRequest(BaseModel):
     from_channel: str = "Meta Ads"
     to_channel: str = "Google Search"
 
+@app.on_event("startup")
+def startup_event():
+    from db import DB_PATH
+    if not DB_PATH.exists() or DB_PATH.stat().st_size == 0:
+        print("[*] Fresh clone detected: Auto-seeding enterprise data warehouse...")
+        seed_enterprise_warehouse()
+    init_workspace_tables()
+
 @app.get("/api/health")
 def health_check():
     return {"status": "online", "system": "DecisIQ Decision Platform", "version": "2.0.0"}
