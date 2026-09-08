@@ -31,9 +31,9 @@ RUN mkdir -p /app/backend/data && python backend/warehouse/seed_data.py
 # Copy compiled frontend from Stage 1 into frontend/dist
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Expose default port
-ENV PORT=8000
-EXPOSE 8000
+# Expose cloud port (Render uses 10000)
+ENV PORT=10000
+EXPOSE 10000 8000
 
 # Start unified server (FastAPI serves both API and Executive UI)
 CMD ["python", "backend/app.py"]

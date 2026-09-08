@@ -94,6 +94,8 @@ def startup_event():
         seed_enterprise_warehouse()
     init_workspace_tables()
 
+@app.get("/health")
+@app.get("/healthz")
 @app.get("/api/health")
 def health_check():
     return {"status": "online", "system": "DecisIQ Decision Platform", "version": "2.0.0"}
@@ -413,9 +415,9 @@ if frontend_dist.exists() and (frontend_dist / "index.html").exists():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    host = "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1"
-    print(f"[*] Starting server on {host}:{port}...")
+    port = int(os.environ.get("PORT", 10000))
+    host = "0.0.0.0"
+    print(f"[*] Starting DecisIQ Platform server on {host}:{port}...")
     uvicorn.run(app, host=host, port=port)
 
 
