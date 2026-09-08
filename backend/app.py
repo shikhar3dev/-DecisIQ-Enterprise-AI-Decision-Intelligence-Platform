@@ -6,6 +6,8 @@ from pathlib import Path
 if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
@@ -390,8 +392,27 @@ def workspace_record_analysis(req: AnalysisRunRequest):
 def export_powerbi():
     return generate_powerbi_asset_pack()
 
+# Serve production frontend SPA if built
+frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if frontend_dist.exists() and (frontend_dist / "index.html").exists():
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        target_path = frontend_dist / full_path
+        if full_path and target_path.is_file():
+            return FileResponse(str(target_path))
+        return FileResponse(str(frontend_dist / "index.html"))
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    host = "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1"
+    print(f"[*] Starting server on {host}:{port}...")
+    uvicorn.run(app, host=host, port=port)
 
 
